@@ -1,0 +1,117 @@
+#Copyright Olteanu Maria-Teona 321CAb 2021-2022
+
+## GENERAL INFO
+Designed an application for image editing.
+
+Appllication uses a main structure for storing an image's data: my_image.
+my_image structure contains info about:
+- image's input file type (binary or text)
+- image's type (e.g. COLOR)
+- image's dimensions
+- image's max pixel value
+- image's current selection (my_select structure)
+- image's pixel matrix / color channels
+
+If an image is a color image we store its pixels in 3 color channels matrices.
+Otherwise, we store it's pixels in a single matrix.
+
+In order to simplify the storing of the pixel matrices and the editor 
+command execution we created 2 structures:
+- basic_img -> contains a double matrix
+- color_img -> contains 3 double matrices for each color channel
+
+my_select structure contains all coordinates neccessary for an image selection.
+
+## IMPLEMENTATION
+
+# ENTRY-POINT -> image_editor.c
+
+Alloc my_image structure & initialize image's data.
+This structure will be allocated till the end of the application.
+
+Read every command line using fgets function.
+If a given command is known execute it (e.g LOAD <file_name>).
+Otherwise, print error message and read next input line.
+
+# COMMANDS
+
+Before executing any command check if an image is currently loaded.
+Also, check if command parameters are valid, otherwise print error message.
+In both cases, if the specified conditions are not met, stop command execution.
+
+LOAD COMMAND -> load_utils
+
+If there is an image loaded currently, free it's data.
+Now we can load a new image from the given file.
+Store input data in the allocated my_image structure.
+
+Read image's magic number.
+Get & store image's type and input file type based on the magic number.
+Read & store image's dimensions.
+Read & store image's max pixel value. (if image is black & white store 1)
+Read & load pixels.
+
+In order to load image's pixel we have to:
+- get image's type -> alloc either color_img or basic_img
+- get file's type -> read matrix / matrices from text or binary file
+
+
+SELECT & SELECT ALL COMMAND -> select_utils
+
+If command is SELECT ALL, store in image's my_selection image's corners:
+0, 0 image's width and height.
+The entire image is selected.
+
+If command is SELECT followed by 4 integers, store those in the current image's
+my_selection structure.
+A section of the image is selected.
+
+ROTATE COMMAND -> rotate_utils
+
+Get the rotation angle and sign.
+
+Get images's selection.
+If just a section of the image is selected rotate the section inplace.
+Otherwise, copy the rotated matrix in a new matrix.
+Free & replace the original matrix with the rotated matrix. 
+
+If rotation is +90 or -270 -> rotate 90 degrees clockwise.
+If rotation is +180 or -180 -> rotate 180 degrees clockwise.
+If rotation is -90 or +270 -> rotate 270 degrees clockwise.
+
+If image is a color image, execute rotate on all 3 color channels matrices.
+If not, execute rotate on pixel matrix.
+
+CROP COMMAND -> crop_utils
+
+To crop an image we copy the current selection in a new matrix.
+Free & change the original image with the cropped one.
+Select the entire image.
+
+If image is a color image, execute crop on all 3 color channels matrices.
+If not, execute crop on the basic image's pixel matrix.
+
+
+APPLY COMMAND -> apply_utils
+
+Get the specified kernel matrix based on the given input filter.
+
+Make copies of the 3 color channels matrices.
+Apply the given kernel matrix on each color channel.
+We compute a filtered pixels using the neighbours values in the 
+copied color channel.
+Store the new pixel in the original color channel.
+Ignore all the edges of the color channel matrix when computing 
+new filtered pixels.
+
+
+SAVE COMMAND -> save_utils
+
+If format is specified open a text file, otherwise a binary file.
+Write all data stored in the current my_image structure.
+
+When we save the pixels we round their double valuea.
+
+
+EXIT COMMAND -> exit_utils
+Free all allocated memory and exit application
